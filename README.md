@@ -54,6 +54,7 @@ pip install -e .
 
 5. Initialize the GCP Secret Manager
 ```bash
+# Command options:
 gsecret -I -h    
 usage: gsecret [-h] -sa SERVICEACCOUNT [-d] [-F]
 
@@ -68,8 +69,10 @@ options:
   -d, --default         Set as default service account
 
   -F, --force           Force action
+```
 
-
+```bash
+# Initialize the GCP Secret Manager
 gsecret -I -sa /home/myUser/sa.json
 ```
 
@@ -124,26 +127,38 @@ options:
 
   -pi PROJECTID, --projectID PROJECTID
                         Project ID. Default: Service account project
+```
 
-# From string
+1. From string
+```bash
 gsecret -c -n test01 -s 'mySecretData321'
+# example output
 [2025-03-24 20:52:50,928][INFO][secrets,112]: Created secret object test01
 [2025-03-24 20:52:51,850][INFO][secrets,143]: Added secret version to secret object test01
+```
 
-# From file
+2. From file
+```bash
 echo '321secretMy' >> secret.txt
 gsecret -c -n test02 -ff ./secret.txt 
+# example output
 [2025-03-24 21:10:54,850][INFO][secrets,112]: Created secret object test02
 [2025-03-24 21:10:55,873][INFO][secrets,143]: Added secret version to secret object test02
+```
 
-# Create a new version of the secret
+3. Create a new version of the secret
+```bash
 gsecret -c -n test02 -s 'newVersionSecret123'
+# example output
 [2025-03-24 21:15:34,713][INFO][secrets,143]: Added secret version to secret object test02
+```
 
-# Create a secret with password
+4. Create a secret with password
+```bash
 gsecret -c -n test03 -s 'verySecret' -p
 Enter password: 
 Verify password:
+# example output
 [2025-03-24 21:38:54,544][INFO][secrets,112]: Created secret object test03
 [2025-03-24 21:39:01,609][INFO][secrets,143]: Added secret version to secret object test03
 ```
@@ -179,52 +194,77 @@ options:
 
   -pi PROJECTID, --projectID PROJECTID
                         Project ID. Default: Service account project
+```
 
-
-# List all secret names
-gsecret -g -l                                
+1. List all secret names
+```bash
+gsecret -g -l
+# example output                                
   test01
   test02
+```
 
-# List versions of a secret
+2. List versions of a secret
+```bash
 gsecret -g -l -n test02
+# example output
 Versions for secret test02:
   2, State: ENABLED
   1, State: ENABLED
+```
 
-# Display to  console
+3. Display to  console
+```bash
 gsecret -g -n test01
+# output
 mySecretData321
 
-gsecret -g -n test02                 
+gsecret -g -n test02
+# output         
 321secretMy
+```
 
-# Get and save to a file
+4. Get and save to a file
+```bash
 gsecret -g -n test01 -t ./my_secret
-cat my_secret 
+cat my_secret
+# output
 mySecretData321
+```
 
-# Specify the secret version to get
+5. Specify the secret version to get
+```bash
 gsecret -g -n test02 -v 1
+# output
 321secretMy
 
 gsecret -g -n test02 -v 2
+# output
 newVersionSecret123
+```
 
-# Get a secret with password
+6. Get a secret with password
+```bash
 gsecret -g -n test03 -p             
-Enter password: 
+Enter password:
+# output 
 verySecret
+```
 
-# Save secret to file with password:
+7. Save secret to file with password:
+```bash
 gsecret -g -n test03 -t ./test03.txt -p
 Enter password:
 
-cat test03.txt 
+cat test03.txt
+# output 
 verySecret
+```
 
-# Getting secret with password without providing password
+8. Getting secret with password without providing password
+```bash
 gsecret -g -n test03
+# output
 [2025-03-24 21:46:32,177][ERROR][secrets,207]: Failed to decrypt secret data
 ```
 
@@ -255,51 +295,73 @@ options:
 
   -pi PROJECTID, --projectID PROJECTID
                         Project ID. Default: Service account project
+```
 
-
-# Delete a specific version of a secret
+1. Delete a specific version of a secret
+```bash
 gsecret -d -n test02 -v 1
+# output
 [2025-03-24 21:29:45,365][INFO][secrets,253]: Deleted secret version 1 from secret object test02
 
+# list versions to verify:
 gsecret -g -l -n test02
 Versions for secret test02:
   2, State: ENABLED
   1, State: DESTROYED
 
+# delete the other version
 gsecret -d -n test02 -v 2
 [2025-03-24 21:31:04,315][INFO][secrets,253]: Deleted secret version 2 from secret object test02
 
+# list versions to verify:
 gsecret -g -l -n test02  
 Versions for secret test02:
   2, State: DESTROYED
   1, State: DESTROYED
 
-gsecret -g -n test02   
+# cannot get the secret data
+gsecret -g -n test02
+# output
 [2025-03-24 21:31:18,091][ERROR][secrets,195]: Secret version latest is not enabled in secret object test02
 
+# cannot get the secret version data
 gsecret -g -n test02 -v 1
+# output
 [2025-03-24 21:31:34,081][ERROR][secrets,195]: Secret version 1 is not enabled in secret object test02
+```
 
-# Completely delete a secret
+2. Completely delete a secret
+```bash
 gsecret -d -n test02
+# output
 [2025-03-24 21:32:32,687][INFO][secrets,231]: Deleted secret object test02
 
+# Try to list the secret
 gsecret -g -l -n test02
+# output
 [2025-03-24 21:36:14,922][ERROR][secrets,368]: Secret object test02 not found
+```
 
-# Disable a secret version instead of deleting it
+3. Disable a secret version instead of deleting it
+```bash
 gsecret -d -n test03 -d -v 1
+# output
 [2025-03-25 14:47:13,626][INFO][secrets,411]: Disabled secret version 1 from secret object test03
 
+# list versions to verify:
 gsecret -g -l -n test03     
 Versions for secret test03:
   1, State: DISABLED
+```
 
-# Enable a secret version
+4. Enable a secret version
+```bash
 gsecret -d -n test03 -e -v 1
+# output
 [2025-03-25 14:47:31,990][INFO][secrets,433]: Enabled secret version 1 from secret object test03
 
-gsecret -g -l -n test03     
+# list versions to verify:
+gsecret -g -l -n test03
 Versions for secret test03:
   1, State: ENABLED
 ```
@@ -324,29 +386,40 @@ options:
 
   -R REMOVE, --remove REMOVE
                         Remove service account by name
+```
 
-
-# List all service accounts
+1. List all service accounts
+```bash
 gsecret -s -l
+# output
 Service accounts:
   test-sa01 (default)
+```
 
-# Add a new service account
+2. Add a new service account
+```bash
 gsecret -s -a /home/myUser/sa2.json
+# Output
 Added service account test-sa02
 Service accounts:
   test-sa02
   test-sa01 (default)
+```
 
-# Set default service account
+3. Set default service account
+```bash
 gsecret -s -d test-sa02
+# output
 Set default service account to test-sa02
 Service accounts:
   test-sa02 (default)
   test-sa01
+```
 
-# Remove service account
+4. Remove service account
+```bash
 gsecret -s -R test-sa02
+# output
 Removed service account test-sa02
 Service accounts:
   test-sa01 (default)
