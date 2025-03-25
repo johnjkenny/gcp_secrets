@@ -61,7 +61,16 @@ class Cipher:
             self.log.exception('Failed to load key file')
             return b''
 
-    def passwd_xor(self, data: bytes, passwd: str):
+    def passwd_xor(self, data: bytes, passwd: str) -> bytes:
+        """Encrypt/Decrypt data using password. Password is hashed using sha256 and extended to the length of data
+
+        Args:
+            data (bytes): data to encrypt/decrypt
+            passwd (str): password to encrypt/decrypt data
+
+        Returns:
+            bytes: encrypted/decrypted data
+        """
         try:
             key = sha256(passwd.encode()).digest()
             extended_key = (key * (len(data) // len(key) + 1))[:len(data)]

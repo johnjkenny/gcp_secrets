@@ -132,9 +132,8 @@ def parse_get_args(args: dict):
     from gcp_secrets.secrets import GCPSecrets
     if args.get('list'):
         if args.get('name'):
-            GCPSecrets(args['serviceAccount'], args['projectID']).list_secret_versions(args['name'])
-        else:
-            GCPSecrets(args['serviceAccount'], args['projectID']).list_secrets()
+            return GCPSecrets(args['serviceAccount'], args['projectID']).list_secret_versions(args['name'])
+        return GCPSecrets(args['serviceAccount'], args['projectID']).list_secrets()
     elif args.get('name'):
         if args.get('toFile'):
             GCPSecrets(args['serviceAccount'], args['projectID']).get_secret_to_file(
@@ -191,6 +190,12 @@ def parse_delete_args(args: dict):
     if args.get('name'):
         if args['version'] == 'all':
             return GCPSecrets(args['serviceAccount'], args['projectID']).delete_secret(args['name'])
+        if args.get('disable'):
+            return GCPSecrets(args['serviceAccount'], args['projectID']).disable_secret_version(
+                args['name'], args['version'])
+        if args.get('enable'):
+            return GCPSecrets(args['serviceAccount'], args['projectID']).enable_secret_version(
+                args['name'], args['version'])
         return GCPSecrets(args['serviceAccount'], args['projectID']).delete_secret_version(
             args['name'], args['version'])
     return True
@@ -212,6 +217,16 @@ def secret_delete(parent_args: list = None):
             'short': 'v',
             'help': 'Secret version to delete. Will delete all secret versions if not specified. Default: all',
             'default': 'all',
+        },
+        'disable': {
+            'short': 'd',
+            'help': 'Disable the secret version instead of deleting it',
+            'action': 'store_true',
+        },
+        'enable': {
+            'short': 'e',
+            'help': 'Enable the secret version',
+            'action': 'store_true',
         },
         'projectID': {
             'short': 'pi',
@@ -253,7 +268,7 @@ def secret_service_account(parent_args: list = None):
             'help': 'Set default service account by name',
         },
         'remove': {
-            'short': 'r',
+            'short': 'R',
             'help': 'Remove service account by name',
         },
     }).set_arguments()

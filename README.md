@@ -2,24 +2,34 @@
 
 This repository contains the code to demonstrate how to use Google Cloud Platform (GCP) Secrets Manager to store and
 retrieve secrets. You can use it in your CI/CD pipeline to store secrets like API keys, passwords, etc. securely.
-You can also use it as a personal password manager.
+You can also use it as a personal password manager. It has the option to use a password to encrypt and decrypt the
+secret data so incase the GCP service account key is compromised the secret data is still secure. The service account
+keys are stored in the `gcp_secrets/gcp_env` directory and encrypted with a generated cipher key.
 
+The tool has the following features:
+- Initialize the GCP Secret Manager
+- Create a secret or a new version of a secret
+- Get a secret or a version of a secret
+- Delete a secret or a version of a secret
+- List all secrets or versions of a secret
+- Add a service account
+- Remove a service account
+- Set default service account
+- Specify the service account to use
+- Specify the project ID to use
 
-### Limitations
+## Prerequisites
 
-Requires a GCP project with Secret Manager API enabled. You will need to create a service account with permissions
-`Secret Manager Admin` then download the service account key in JSON format.
+- GCP project access
+- Secret Manager API enabled in project
+- Create service account that has `Secret Manager Admin` permissions
+- Download service account key in JSON format
 
 
 ## Installation
 The installation process will walk you through creating a virtual environment, installing the required packages, and
-installing the console scripts. Then it will initialize the GCP Secret Manager by providing the service account key
-in which it will be parsed and stored in gcp_secrets/gcp_env/ directory and encrypted with a cipher key. This is to
-provide slightly more security then storing the service account key in plain text. After initialization you can
-provide more service accounts and the env can be used as a service account key manager where you specify the service
-account name you want to use. You can set the default service account to use too. If you have a service account that has
-permissions to manage secrets in multiple projects you can specify the project ID to use within your commands. If not
-provided the project ID will be taken from the service account key.
+installing the console scripts then initializing the GCP Secret Manager by providing the service account key that
+will be used to access the GCP Secret Manager.
 
 
 1. Create virtual Environment
@@ -58,6 +68,7 @@ options:
   -d, --default         Set as default service account
 
   -F, --force           Force action
+
 
 gsecret -I -sa /home/myUser/sa.json
 ```
@@ -131,8 +142,9 @@ gsecret -c -n test02 -s 'newVersionSecret123'
 
 # Create a secret with password
 gsecret -c -n test03 -s 'verySecret' -p
+Enter password: 
+Verify password:
 [2025-03-24 21:38:54,544][INFO][secrets,112]: Created secret object test03
-Enter password:
 [2025-03-24 21:39:01,609][INFO][secrets,143]: Added secret version to secret object test03
 ```
 
@@ -174,7 +186,7 @@ gsecret -g -l
   test01
   test02
 
-# List version of a secret
+# List versions of a secret
 gsecret -g -l -n test02
 Versions for secret test02:
   2, State: ENABLED
@@ -220,8 +232,8 @@ gsecret -g -n test03
 ### Delete a secret
 ```bash
 # command options:
-gsecret -d -h
-usage: gsecret [-h] [-sa SERVICEACCOUNT] -n NAME [-v VERSION] [-pi PROJECTID]
+gsecret -d -h                       
+usage: gsecret [-h] [-sa SERVICEACCOUNT] -n NAME [-v VERSION] [-d] [-e] [-pi PROJECTID]
 
 GCP Secret Delete
 
@@ -236,6 +248,10 @@ options:
   -v VERSION, --version VERSION
                         Secret version to delete. Will delete all secret versions if not specified.
                         Default: all
+
+  -d, --disable         Disable the secret version instead of deleting it
+
+  -e, --enable          Enable the secret version
 
   -pi PROJECTID, --projectID PROJECTID
                         Project ID. Default: Service account project
@@ -265,9 +281,73 @@ gsecret -g -n test02 -v 1
 [2025-03-24 21:31:34,081][ERROR][secrets,195]: Secret version 1 is not enabled in secret object test02
 
 # Completely delete a secret
-gsecret -d -n test02     
+gsecret -d -n test02
 [2025-03-24 21:32:32,687][INFO][secrets,231]: Deleted secret object test02
 
 gsecret -g -l -n test02
 [2025-03-24 21:36:14,922][ERROR][secrets,368]: Secret object test02 not found
+
+# Disable a secret version instead of deleting it
+gsecret -d -n test03 -d -v 1
+[2025-03-25 14:47:13,626][INFO][secrets,411]: Disabled secret version 1 from secret object test03
+
+gsecret -g -l -n test03     
+Versions for secret test03:
+  1, State: DISABLED
+
+# Enable a secret version
+gsecret -d -n test03 -e -v 1
+[2025-03-25 14:47:31,990][INFO][secrets,433]: Enabled secret version 1 from secret object test03
+
+gsecret -g -l -n test03     
+Versions for secret test03:
+  1, State: ENABLED
+```
+
+### Service Account Commands
+```bash
+# command options:
+gsecret -s -h            
+usage: gsecret [-h] [-a ADD] [-l] [-d DEFAULT] [-r REMOVE]
+
+GCP Secret Service Account
+
+options:
+  -h, --help            show this help message and exit
+
+  -a ADD, --add ADD     Service account path (full path to json file)
+
+  -l, --list            List all service accounts
+
+  -d DEFAULT, --default DEFAULT
+                        Set default service account by name
+
+  -R REMOVE, --remove REMOVE
+                        Remove service account by name
+
+
+# List all service accounts
+gsecret -s -l
+Service accounts:
+  test-sa01 (default)
+
+# Add a new service account
+gsecret -s -a /home/myUser/sa2.json
+Added service account test-sa02
+Service accounts:
+  test-sa02
+  test-sa01 (default)
+
+# Set default service account
+gsecret -s -d test-sa02
+Set default service account to test-sa02
+Service accounts:
+  test-sa02 (default)
+  test-sa01
+
+# Remove service account
+gsecret -s -R test-sa02
+Removed service account test-sa02
+Service accounts:
+  test-sa01 (default)
 ```
