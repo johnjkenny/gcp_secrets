@@ -44,7 +44,7 @@ class GCPSecrets():
             str: service account file path
         """
         if self.service_account == 'default':
-            self.service_account = self.__get__default_service_account()
+            self.service_account = self.__get_default_service_account()
         return f'{Path(__file__).parent}/gcp_env/.{self.service_account}.sa'
 
     @property
@@ -214,7 +214,7 @@ class GCPSecrets():
             self.log.exception(f'Failed to create secret object {secret_name}')
         return False
 
-    def __get__default_service_account(self) -> str:
+    def __get_default_service_account(self) -> str:
         """Get the default service account name
 
         Returns:
@@ -536,7 +536,7 @@ class GCPSecrets():
     def list_service_accounts(self) -> None:
         """List all service accounts"""
         payload = 'Service accounts:\n'
-        default = self.__get__default_service_account()
+        default = self.__get_default_service_account()
         for sa in self.get_service_accounts():
             payload += '  ' + sa + ' (default)\n' if sa == default else '  ' + sa + '\n'
         self.display_success(payload.strip())
@@ -572,7 +572,7 @@ class GCPSecrets():
         Returns:
             bool: True if successful, False otherwise
         """
-        if self.__get__default_service_account() == service_account:
+        if self.__get_default_service_account() == service_account:
             self.log.error('Cannot remove default service account')
             return False
         if service_account in self.get_service_accounts():

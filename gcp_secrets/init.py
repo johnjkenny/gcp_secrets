@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 from gcp_secrets.secrets import GCPSecrets
 
 

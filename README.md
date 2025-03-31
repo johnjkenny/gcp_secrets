@@ -22,8 +22,9 @@ The tool has the following features:
 
 - GCP project access
 - Secret Manager API enabled in project
-- Create service account that has `Secret Manager Admin` permissions
+- Create service account that has `Secret Manager Admin` role permissions
 - Download service account key in JSON format
+- Python 3.12 environment
 
 
 ## Installation
